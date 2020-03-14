@@ -1,7 +1,12 @@
-ARG	BASE_IMAGE=$BASE_IMAGE
-FROM 	$BASE_IMAGE as rngd
+ARG     BASE_IMG=$BASE_IMG
+FROM    $BASE_IMG AS base
 
-#RUN     apk --update --no-cache add wget bc build-base gawk xorriso libelf-dev openssl-dev bison flex linux-headers perl rsync git argp-standalone gettext
+RUN     apk --update --no-cache upgrade
+
+
+
+FROM    base as build
+
 RUN     apk --update --no-cache add wget bc build-base gawk xorriso openssl-dev bison flex linux-headers perl rsync git argp-standalone gettext
 
 ARG     RNGTOOLS_VERSION=5
@@ -36,6 +41,6 @@ RUN	make DESTDIR=$OUT install
 
 FROM    scratch
 
-COPY    --from=rngd /out/usr/sbin/rngd /usr/sbin/rngd
+COPY    --from=build /out/usr/sbin/rngd /usr/sbin/rngd
 
 CMD	["/usr/sbin/rngd", "-f", "-r", "/dev/urandom", "-p", "/var/run/rngd.pid"]
